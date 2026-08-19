@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subir Fotos del Evento</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; margin: 0; }
+    .card { background: white; padding: 25px; border-radius: 12px; max-width: 420px; margin: 20px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    h2 { margin-top: 0; color: #333; }
+    p.desc { font-size: 14px; color: #666; margin-bottom: 20px; }
+    
+    .file-label {
+      display: block;
+      background: #e9ecef;
+      color: #495057;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid #ced4da;
+      cursor: pointer;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    input[type="file"] { display: none; }
+    
+    .btn { background: #007bff; color: white; border: none; padding: 14px 24px; border-radius: 8px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-secondary { background: #28a745; display: none; }
+    
+    #status { margin-top: 15px; font-weight: bold; line-height: 1.4; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Subí tus fotos</h2>
+    <p class="desc">Elegí fotos de tu galería o sacá una nueva con la cámara (máx. 10 MB por foto).</p>
+    
+    <!-- Botón 1: Galería (Permite múltiples fotos) -->
+    <label for="galleryInput" class="file-label" id="galleryLabel">
+      🖼️ Elegir de la Galería
+    </label>
+    <input type="file" id="galleryInput" accept="image/*" multiple onchange="updateFileCount('gallery')">
+
+    <!-- Botón 2: Cámara (Abre directo la cámara trasera) -->
+    <label for="cameraInput" class="file-label" id="cameraLabel">
+      📷 Tomar Foto con la Cámara
+    </label>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="updateFileCount('camera')">
+
+    <button id="uploadBtn" class="btn" onclick="uploadPhotos()">Enviar Fotos</button>
+    <button id="resetBtn" class="btn btn-secondary" onclick="resetForm()">➕ Subir más imágenes</button>
+    
+    <p id="status"></p>
+  </div>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwge7WM5fKkB2cAyJs-5FD4b9iLrqAt5YuIXBMrzEN4BsrkpHE51kD9q0Gxapyp7d5x/exec";
+    const MAX_SIZE_MB = 10;
+    const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+    let activeInput = null;
+
+    function updateFileCount(source) {
+      const galleryInput = document.getElementById('galleryInput');
+      const cameraInput = document.getElementById('cameraInput');
+      const galleryLabel = document.getElementById('galleryLabel');
+      const cameraLabel = document.getElementById('cameraLabel');
+
+      if (source === 'gallery' && galleryInput.files.length > 0) {
+        cameraInput.value = ""; // limpia la otra opción
+        cameraLabel.textContent = "📷 Tomar Foto con la Cámara";
+        galleryLabel.textContent = `🖼️ ${galleryInput.files.length} foto(s) seleccionada(s)`;
+        activeInput = galleryInput;
+      } else if (source === 'camera' && cameraInput.files.length > 0) {
+        galleryInput.value = ""; // limpia la otra opción
+        galleryLabel.textContent = "🖼️ Elegir de la Galería";
+        cameraLabel.textContent = `📷 1 foto tomada`;
+        activeInput = cameraInput;
+      }
+    }
+
+    async function uploadPhotos() {
+      const status = document.getElementById('status');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      if (!activeInput || activeInput.files.length === 0) {
+        status.style.color = "red";
+        status.textContent = "Por favor elige una foto de la galería o toma una con la cámara.";
+        return;
+      }
+
+      const files = activeInput.files;
+
+      for (let i = 0; i < files.length; i++) {
+        if (files[i].size > MAX_SIZE_BYTES) {
+          status.style.color = "red";
+          status.textContent = `La foto "${files[i].name}" supera el límite de 10 MB.`;
+          return;
+        }
+      }
+
+      status.style.color = "black";
+      status.textContent = "Procesando imágenes...";
+      uploadBtn.disabled = true;
+
+      try {
+        const payloadFiles = [];
+
+        for (let i = 0; i < files.length; i++) {
+          status.textContent = `Preparando foto ${i + 1} de ${files.length}...`;
+          const base64 = await fileToBase64(files[i]);
+          payloadFiles.push({
+            file: base64.split(',')[1],
+            mimeType: files[i].type,
+            fileName: files[i].name
+          });
+        }
+
+        status.textContent = "Subiendo imágenes a Google Drive...";
+
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ files: payloadFiles })
+        });
+
+        const data = await response.json();
+
+        if (data.status === "success") {
+          status.style.color = "green";
+          status.textContent = `¡Éxito! Se subieron ${data.count} foto(s) correctamente.`;
+          
+          uploadBtn.style.display = "none";
+          resetBtn.style.display = "block";
+        } else {
+          status.style.color = "red";
+          status.textContent = "Error del servidor: " + data.message;
+          uploadBtn.disabled = false;
+        }
+      } catch (err) {
+        console.error(err);
+        status.style.color = "red";
+        status.textContent = "Error al conectar con el servidor.";
+        uploadBtn.disabled = false;
+      }
+    }
+
+    function resetForm() {
+      const galleryInput = document.getElementById('galleryInput');
+      const cameraInput = document.getElementById('cameraInput');
+      const galleryLabel = document.getElementById('galleryLabel');
+      const cameraLabel = document.getElementById('cameraLabel');
+      const status = document.getElementById('status');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      galleryInput.value = "";
+      cameraInput.value = "";
+      activeInput = null;
+      
+      galleryLabel.textContent = "🖼️ Elegir de la Galería";
+      cameraLabel.textContent = "📷 Tomar Foto con la Cámara";
+      status.textContent = "";
+
+      uploadBtn.disabled = false;
+      uploadBtn.style.display = "block";
+      resetBtn.style.display = "none";
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }
+  </script>
+</body>
+</html>
