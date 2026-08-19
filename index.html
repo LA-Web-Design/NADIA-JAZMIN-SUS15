@@ -28,25 +28,28 @@
     .btn-secondary { background: #28a745; display: none; }
     
     #status { margin-top: 15px; font-weight: bold; line-height: 1.4; }
+    #summary { font-size: 14px; color: #28a745; font-weight: bold; margin-bottom: 10px; display: none; }
   </style>
 </head>
 <body>
 
   <div class="card">
     <h2>Subí tus fotos</h2>
-    <p class="desc">Elegí fotos de tu galería o sacá una nueva con la cámara (máx. 10 MB por foto).</p>
+    <p class="desc">Podés combinar fotos de tu galería y fotos tomadas con la cámara (máx. 10 MB por foto).</p>
     
-    <!-- Botón 1: Galería (Permite múltiples fotos) -->
-    <label for="galleryInput" class="file-label" id="galleryLabel">
+    <div id="summary"></div>
+
+    <!-- Botón Galería -->
+    <label for="galleryInput" class="file-label">
       🖼️ Elegir de la Galería
     </label>
-    <input type="file" id="galleryInput" accept="image/*" multiple onchange="updateFileCount('gallery')">
+    <input type="file" id="galleryInput" accept="image/*" multiple onchange="addFiles(this.files)">
 
-    <!-- Botón 2: Cámara (Abre directo la cámara trasera) -->
-    <label for="cameraInput" class="file-label" id="cameraLabel">
+    <!-- Botón Cámara -->
+    <label for="cameraInput" class="file-label">
       📷 Tomar Foto con la Cámara
     </label>
-    <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="updateFileCount('camera')">
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="addFiles(this.files)">
 
     <button id="uploadBtn" class="btn" onclick="uploadPhotos()">Enviar Fotos</button>
     <button id="resetBtn" class="btn btn-secondary" onclick="resetForm()">➕ Subir más imágenes</button>
@@ -58,24 +61,37 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwge7WM5fKkB2cAyJs-5FD4b9iLrqAt5YuIXBMrzEN4BsrkpHE51kD9q0Gxapyp7d5x/exec";
     const MAX_SIZE_MB = 10;
     const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
-    let activeInput = null;
+    
+    // Lista acumulativa de archivos
+    let selectedFilesList = [];
 
-    function updateFileCount(source) {
-      const galleryInput = document.getElementById('galleryInput');
-      const cameraInput = document.getElementById('cameraInput');
-      const galleryLabel = document.getElementById('galleryLabel');
-      const cameraLabel = document.getElementById('cameraLabel');
+    function addFiles(newFiles) {
+      const status = document.getElementById('status');
+      
+      for (let i = 0; i < newFiles.length; i++) {
+        if (newFiles[i].size > MAX_SIZE_BYTES) {
+          status.style.color = "red";
+          status.textContent = `La foto "${newFiles[i].name}" supera el límite de 10 MB.`;
+          return;
+        }
+        selectedFilesList.push(newFiles[i]);
+      }
 
-      if (source === 'gallery' && galleryInput.files.length > 0) {
-        cameraInput.value = ""; // limpia la otra opción
-        cameraLabel.textContent = "📷 Tomar Foto con la Cámara";
-        galleryLabel.textContent = `🖼️ ${galleryInput.files.length} foto(s) seleccionada(s)`;
-        activeInput = galleryInput;
-      } else if (source === 'camera' && cameraInput.files.length > 0) {
-        galleryInput.value = ""; // limpia la otra opción
-        galleryLabel.textContent = "🖼️ Elegir de la Galería";
-        cameraLabel.textContent = `📷 1 foto tomada`;
-        activeInput = cameraInput;
+      status.textContent = "";
+      updateSummary();
+      
+      // Limpiar los inputs para permitir volver a seleccionar las mismas opciones
+      document.getElementById('galleryInput').value = "";
+      document.getElementById('cameraInput').value = "";
+    }
+
+    function updateSummary() {
+      const summary = document.getElementById('summary');
+      if (selectedFilesList.length > 0) {
+        summary.style.display = "block";
+        summary.textContent = `📸 ${selectedFilesList.length} foto(s) lista(s) para enviar`;
+      } else {
+        summary.style.display = "none";
       }
     }
 
@@ -84,20 +100,10 @@
       const uploadBtn = document.getElementById('uploadBtn');
       const resetBtn = document.getElementById('resetBtn');
 
-      if (!activeInput || activeInput.files.length === 0) {
+      if (selectedFilesList.length === 0) {
         status.style.color = "red";
-        status.textContent = "Por favor elige una foto de la galería o toma una con la cámara.";
+        status.textContent = "Por favor elige al menos una foto de la galería o toma una con la cámara.";
         return;
-      }
-
-      const files = activeInput.files;
-
-      for (let i = 0; i < files.length; i++) {
-        if (files[i].size > MAX_SIZE_BYTES) {
-          status.style.color = "red";
-          status.textContent = `La foto "${files[i].name}" supera el límite de 10 MB.`;
-          return;
-        }
       }
 
       status.style.color = "black";
@@ -107,13 +113,13 @@
       try {
         const payloadFiles = [];
 
-        for (let i = 0; i < files.length; i++) {
-          status.textContent = `Preparando foto ${i + 1} de ${files.length}...`;
-          const base64 = await fileToBase64(files[i]);
+        for (let i = 0; i < selectedFilesList.length; i++) {
+          status.textContent = `Preparando foto ${i + 1} de ${selectedFilesList.length}...`;
+          const base64 = await fileToBase64(selectedFilesList[i]);
           payloadFiles.push({
             file: base64.split(',')[1],
-            mimeType: files[i].type,
-            fileName: files[i].name
+            mimeType: selectedFilesList[i].type,
+            fileName: selectedFilesList[i].name
           });
         }
 
@@ -131,6 +137,7 @@
           status.style.color = "green";
           status.textContent = `¡Éxito! Se subieron ${data.count} foto(s) correctamente.`;
           
+          document.getElementById('summary').style.display = "none";
           uploadBtn.style.display = "none";
           resetBtn.style.display = "block";
         } else {
@@ -147,20 +154,12 @@
     }
 
     function resetForm() {
-      const galleryInput = document.getElementById('galleryInput');
-      const cameraInput = document.getElementById('cameraInput');
-      const galleryLabel = document.getElementById('galleryLabel');
-      const cameraLabel = document.getElementById('cameraLabel');
       const status = document.getElementById('status');
       const uploadBtn = document.getElementById('uploadBtn');
       const resetBtn = document.getElementById('resetBtn');
 
-      galleryInput.value = "";
-      cameraInput.value = "";
-      activeInput = null;
-      
-      galleryLabel.textContent = "🖼️ Elegir de la Galería";
-      cameraLabel.textContent = "📷 Tomar Foto con la Cámara";
+      selectedFilesList = [];
+      document.getElementById('summary').style.display = "none";
       status.textContent = "";
 
       uploadBtn.disabled = false;
