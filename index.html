@@ -1,92 +1,87 @@
-// ============================================================
-// CONFIGURACIÓN DEL EVENTO
-// ============================================================
-const FOLDER_ID = "PEGAR_AQUI_EL_ID_DE_TU_CARPETA_DE_DRIVE";
-const API_KEY = "AIzaSyCkbcI_nRLCN_XRd6epVeMlJvjF74c_nI8";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subir Foto del Evento</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+    h2 { margin-bottom: 20px; color: #333; }
+    .btn { display: inline-block; width: 100%; padding: 12px; margin: 10px 0; background-color: #007bff; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; text-decoration: none; }
+    .btn:hover { background-color: #0056b3; }
+    input[type="file"] { display: none; }
+    #status { margin-top: 15px; font-weight: bold; font-size: 14px; }
+    .error { color: #dc3545; }
+    .success { color: #28a745; }
+    .loading { color: #ffc107; }
+  </style>
+</head>
+<body>
 
-// ============================================================
-// FUNCIÓN PRINCIPAL DE SUBIDA CON FILTRO IA
-// ============================================================
-function doPost(e) {
-  try {
-    const data = JSON.parse(e.postData.contents);
-    const base64Data = data.file;
-    const fileName = data.name || "foto_evento.jpg";
+  <div class="card">
+    <h2>¡Compartí tu foto del evento!</h2>
     
-    // 1. Extraer los datos limpios en formato Base64
-    const base64Clean = base64Data.split(",")[1] || base64Data;
-    
-    // 2. ANALIZAR IMAGEN CON GOOGLE CLOUD VISION (IA)
-    const esSegura = analizarImagenConIA(base64Clean);
-    
-    if (!esSegura) {
-      return ContentService.createTextOutput(JSON.stringify({
-        status: "error",
-        message: "La imagen contiene contenido no apropiado para el evento y fue rechazada."
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
+    <!-- Botón para seleccionar o tomar foto -->
+    <label class="btn" for="photoInput">Elegir Foto o Tomar Foto</label>
+    <input type="file" id="photoInput" accept="image/*">
 
-    // 3. SI PASA EL FILTRO, GUARDAR EN GOOGLE DRIVE
-    const decodedBytes = Utilities.base64Decode(base64Clean);
-    const blob = Utilities.newBlob(decodedBytes, data.mimeType || "image/jpeg", fileName);
-    const folder = DriveApp.getFolderById(FOLDER_ID);
-    const file = folder.createFile(blob);
-    
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "success",
-      message: "¡Foto subida con éxito!",
-      fileUrl: file.getUrl()
-    })).setMimeType(ContentService.MimeType.JSON);
+    <div id="status"></div>
+  </div>
 
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "error",
-      message: "Error en el servidor: " + error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
+  <script>
+    // URL DE TU WEB APP DE GOOGLE APPS SCRIPT
+    const SCRIPT_URL = "PEGAR_AQUI_TU_URL_DE_APPS_SCRIPT"; 
 
-// ============================================================
-// CONSULTA DE SAFESEARCH A LA API DE VISION
-// ============================================================
-function analizarImagenConIA(base64Clean) {
-  const url = `https://vision.googleapis.com/v1/images:annotate?key=${API_KEY}`;
-  
-  const payload = {
-    requests: [
-      {
-        image: { content: base64Clean },
-        features: [
-          { type: "SAFE_SEARCH_DETECTION" }
-        ]
+    const MAX_SIZE_MB = 10;
+    const photoInput = document.getElementById("photoInput");
+    const statusDiv = document.getElementById("status");
+
+    photoInput.addEventListener("change", function() {
+      const file = this.files[0];
+      if (!file) return;
+
+      // Validar tamaño máximo (10 MB)
+      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        statusDiv.className = "error";
+        statusDiv.innerText = `El archivo supera el límite de ${MAX_SIZE_MB} MB.`;
+        this.value = "";
+        return;
       }
-    ]
-  };
 
-  const options = {
-    method: "post",
-    contentType: "application/json",
-    payload: JSON.stringify(payload),
-    muteHttpExceptions: true
-  };
+      statusDiv.className = "loading";
+      statusDiv.innerText = "Analizando y subiendo imagen...";
 
-  const response = UrlFetchApp.fetch(url, options);
-  const result = JSON.parse(response.getContentText());
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Data = e.target.result;
 
-  if (result.responses && result.responses[0].safeSearchAnnotation) {
-    const safeSearch = result.responses[0].safeSearchAnnotation;
-    
-    // Bloquear si detecta contenido Adulto, Violento o Racy (Sugerente/Provocativo)
-    const categoriasProhibidas = ["LIKELY", "VERY_LIKELY"];
-    
-    if (
-      categoriasProhibidas.includes(safeSearch.adult) ||
-      categoriasProhibidas.includes(safeSearch.violence) ||
-      categoriasProhibidas.includes(safeSearch.racy)
-    ) {
-      return false; // RECHAZADA
-    }
-  }
+        fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            file: base64Data,
+            name: file.name,
+            mimeType: file.type
+          })
+        })
+        .then(() => {
+          statusDiv.className = "success";
+          statusDiv.innerText = "¡Foto procesada correctamente!";
+          photoInput.value = "";
+        })
+        .catch(err => {
+          statusDiv.className = "error";
+          statusDiv.innerText = "Ocurrió un error al enviar la imagen.";
+          console.error(err);
+        });
+      };
 
-  return true; // APROBADA
-}
+      reader.readAsDataURL(file);
+    });
+  </script>
+
+</body>
+</html>
