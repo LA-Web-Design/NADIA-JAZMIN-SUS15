@@ -51,7 +51,6 @@
             line-height: 1.4;
         }
 
-        /* Estilo general de los botones */
         .btn-action {
             display: block;
             width: 100%;
@@ -68,7 +67,6 @@
             text-decoration: none;
         }
 
-        /* Botones de selección (cámara y galería) */
         .btn-select {
             background-color: transparent;
             color: var(--text-color);
@@ -80,7 +78,6 @@
             background-color: rgba(255, 255, 255, 0.05);
         }
 
-        /* Botón de envío principal */
         .btn-submit {
             background-color: var(--primary-color);
             color: #ffffff;
@@ -97,7 +94,6 @@
             cursor: not-allowed;
         }
 
-        /* Contador de archivos acumulados */
         #counter-badge {
             font-size: 0.95rem;
             color: #ffc107;
@@ -106,7 +102,6 @@
             min-height: 1.2em;
         }
 
-        /* Ocultar inputs reales de archivos */
         input[type="file"] {
             display: none;
         }
@@ -125,22 +120,18 @@
     <h2>Subí tus fotos</h2>
     <p class="subtitle">Tomá fotos con la cámara o elegilas de tu galería. ¡Podés sumar de ambos lados antes de enviar!</p>
 
-    <!-- Botón 1: Tomar Fotos con la Cámara -->
     <label for="cameraInput" class="btn-action btn-select" id="camLabel">
         📸 Tomar Fotos
     </label>
     <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple>
 
-    <!-- Botón 2: Imágenes de la Galería -->
     <label for="galleryInput" class="btn-action btn-select" id="galLabel">
         🖼️ Imágenes de la Galería
     </label>
     <input type="file" id="galleryInput" accept="image/*" multiple>
 
-    <!-- Contador de selección -->
     <div id="counter-badge"></div>
 
-    <!-- Botón 3: Enviar conjunto -->
     <button id="submitBtn" class="btn-action btn-submit" onclick="enviarFotos()">
         Enviar al Evento
     </button>
@@ -149,7 +140,6 @@
 </div>
 
 <script>
-    // URL DE TU APLICACIÓN WEB DE GOOGLE APPS SCRIPT
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxz6aPNA3RMYnxP38dg4tSTXJViQtC2C_cBn7kcn5tu3ro1LFffwyAJP67varPvQLs5/exec";
 
     let archivosAcumulados = [];
@@ -160,16 +150,14 @@
     const counterBadge = document.getElementById('counter-badge');
     const statusMsg = document.getElementById('status-msg');
 
-    // Evento al tomar fotos con la cámara (acumula)
     cameraInput.addEventListener('change', (e) => {
         agregarArchivos(e.target.files);
-        cameraInput.value = ''; // Resetear para permitir capturar de nuevo
+        cameraInput.value = '';
     });
 
-    // Evento al seleccionar de la galería (acumula)
     galleryInput.addEventListener('change', (e) => {
         agregarArchivos(e.target.files);
-        galleryInput.value = ''; // Resetear para permitir seleccionar más
+        galleryInput.value = '';
     });
 
     function agregarArchivos(nuevosFiles) {
@@ -197,11 +185,9 @@
         }
     }
 
-    // Función principal de envío con compresión previa
     async function enviarFotos() {
         if (archivosAcumulados.length === 0) return;
 
-        // Deshabilitar controles durante el envío
         submitBtn.disabled = true;
         cameraInput.disabled = true;
         galleryInput.disabled = true;
@@ -215,7 +201,6 @@
             statusMsg.innerText = `Procesando y analizando ${i + 1} de ${archivosAcumulados.length}...`;
 
             try {
-                // Comprimir imagen antes de mandar para evitar saturar Cloud Vision
                 const base64Comprimido = await comprimirImagen(file);
 
                 const response = await fetch(WEB_APP_URL, {
@@ -227,7 +212,13 @@
                     })
                 });
 
-                const resultado = await response.json();
+                const textResponse = await response.text();
+                let resultado;
+                try {
+                    resultado = JSON.parse(textResponse);
+                } catch (e) {
+                    resultado = { status: "error", message: "Respuesta inválida del servidor" };
+                }
 
                 if (resultado.status === "success") {
                     correctas++;
@@ -241,11 +232,9 @@
             }
         }
 
-        // Mostrar resumen final
         statusMsg.style.color = correctas > 0 ? "#28a745" : "#dc3545";
         statusMsg.innerText = `¡Proceso finalizado! Subidas: ${correctas} | Rechazadas por seguridad: ${rechazadas}`;
 
-        // Limpiar lista y restablecer interfaz para seguir subiendo más si se desea
         archivosAcumulados = [];
         submitBtn.disabled = false;
         cameraInput.disabled = false;
@@ -253,7 +242,6 @@
         actualizarInterfaz();
     }
 
-    // Función para comprimir la imagen en el navegador a un ancho máx de 1000px (Súper liviana para la IA)
     function comprimirImagen(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -286,7 +274,6 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Convertir a JPEG comprimido al 82% de calidad
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
                     resolve(dataUrl);
                 };
