@@ -3,178 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Subir Fotos del Evento</title>
+  <title>Subir Foto del Evento</title>
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; margin: 0; }
-    .card { background: white; padding: 25px; border-radius: 12px; max-width: 420px; margin: 20px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    h2 { margin-top: 0; color: #333; }
-    p.desc { font-size: 14px; color: #666; margin-bottom: 20px; }
-    
-    .file-label {
-      display: block;
-      background: #e9ecef;
-      color: #495057;
-      padding: 14px;
-      border-radius: 8px;
-      border: 1px solid #ced4da;
-      cursor: pointer;
-      margin-bottom: 12px;
-      font-weight: 600;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+    h2 { margin-bottom: 20px; color: #333; }
+    .btn { display: block; width: 100%; padding: 14px; margin: 12px 0; background-color: #007bff; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; text-decoration: none; }
+    .btn-camera { background-color: #28a745; }
+    .btn:hover { opacity: 0.9; }
     input[type="file"] { display: none; }
-    
-    .btn { background: #007bff; color: white; border: none; padding: 14px 24px; border-radius: 8px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
-    .btn:disabled { background: #ccc; cursor: not-allowed; }
-    .btn-secondary { background: #28a745; display: none; }
-    
-    #status { margin-top: 15px; font-weight: bold; line-height: 1.4; }
-    #summary { font-size: 14px; color: #28a745; font-weight: bold; margin-bottom: 10px; display: none; }
+    #status { margin-top: 15px; font-weight: bold; font-size: 14px; }
+    .error { color: #dc3545; }
+    .success { color: #28a745; }
+    .loading { color: #ffc107; }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <h2>Subí tus fotos</h2>
-    <p class="desc">Podés combinar fotos de tu galería y fotos tomadas con la cámara (máx. 10 MB por foto).</p>
+    <h2>¡Compartí tu foto del evento!</h2>
     
-    <div id="summary"></div>
+    <!-- Botón 1: Elegir de la Galería -->
+    <label class="btn" for="galleryInput">🖼️ Elegir de la Galería</label>
+    <input type="file" id="galleryInput" accept="image/*">
 
-    <!-- Botón Galería -->
-    <label for="galleryInput" class="file-label">
-      🖼️ Elegir de la Galería
-    </label>
-    <input type="file" id="galleryInput" accept="image/*" multiple onchange="addFiles(this.files)">
+    <!-- Botón 2: Abrir Cámara Directamente -->
+    <label class="btn btn-camera" for="cameraInput">📸 Tomar Foto</label>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment">
 
-    <!-- Botón Cámara -->
-    <label for="cameraInput" class="file-label">
-      📷 Tomar Foto con la Cámara
-    </label>
-    <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="addFiles(this.files)">
-
-    <button id="uploadBtn" class="btn" onclick="uploadPhotos()">Enviar Fotos</button>
-    <button id="resetBtn" class="btn btn-secondary" onclick="resetForm()">➕ Subir más imágenes</button>
-    
-    <p id="status"></p>
+    <div id="status"></div>
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFemYWnikIh3GFsHmNjOB-5JfwRa2HhdPZlKXU2__0XvqIM1DDl_jJTx7ShYkoQpzh/exec";
+    // URL DE TU WEB APP DE GOOGLE APPS SCRIPT (VERSIÓN 5)
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxz6aPNA3RMYnxP38dg4tSTXJViQtC2C_cBn7kcn5tu3ro1LFffwyAJP67varPvQLs5/exec"; 
+
     const MAX_SIZE_MB = 10;
-    const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
-    
-    // Lista acumulativa de archivos
-    let selectedFilesList = [];
+    const galleryInput = document.getElementById("galleryInput");
+    const cameraInput = document.getElementById("cameraInput");
+    const statusDiv = document.getElementById("status");
 
-    function addFiles(newFiles) {
-      const status = document.getElementById('status');
-      
-      for (let i = 0; i < newFiles.length; i++) {
-        if (newFiles[i].size > MAX_SIZE_BYTES) {
-          status.style.color = "red";
-          status.textContent = `La foto "${newFiles[i].name}" supera el límite de 10 MB.`;
-          return;
-        }
-        selectedFilesList.push(newFiles[i]);
-      }
+    function procesarArchivo(file, inputElement) {
+      if (!file) return;
 
-      status.textContent = "";
-      updateSummary();
-      
-      // Limpiar los inputs para permitir volver a seleccionar las mismas opciones
-      document.getElementById('galleryInput').value = "";
-      document.getElementById('cameraInput').value = "";
-    }
-
-    function updateSummary() {
-      const summary = document.getElementById('summary');
-      if (selectedFilesList.length > 0) {
-        summary.style.display = "block";
-        summary.textContent = `📸 ${selectedFilesList.length} foto(s) lista(s) para enviar`;
-      } else {
-        summary.style.display = "none";
-      }
-    }
-
-    async function uploadPhotos() {
-      const status = document.getElementById('status');
-      const uploadBtn = document.getElementById('uploadBtn');
-      const resetBtn = document.getElementById('resetBtn');
-
-      if (selectedFilesList.length === 0) {
-        status.style.color = "red";
-        status.textContent = "Por favor elige al menos una foto de la galería o toma una con la cámara.";
+      // Validar tamaño máximo (10 MB)
+      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        statusDiv.className = "error";
+        statusDiv.innerText = `El archivo supera el límite de ${MAX_SIZE_MB} MB.`;
+        inputElement.value = "";
         return;
       }
 
-      status.style.color = "black";
-      status.textContent = "Procesando imágenes...";
-      uploadBtn.disabled = true;
+      statusDiv.className = "loading";
+      statusDiv.innerText = "Analizando y subiendo imagen...";
 
-      try {
-        const payloadFiles = [];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Data = e.target.result;
 
-        for (let i = 0; i < selectedFilesList.length; i++) {
-          status.textContent = `Preparando foto ${i + 1} de ${selectedFilesList.length}...`;
-          const base64 = await fileToBase64(selectedFilesList[i]);
-          payloadFiles.push({
-            file: base64.split(',')[1],
-            mimeType: selectedFilesList[i].type,
-            fileName: selectedFilesList[i].name
-          });
-        }
-
-        status.textContent = "Subiendo imágenes a Google Drive...";
-
-        const response = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ files: payloadFiles })
+        fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            file: base64Data,
+            name: file.name || "foto_evento.jpg",
+            mimeType: file.type
+          })
+        })
+        .then(() => {
+          statusDiv.className = "success";
+          statusDiv.innerText = "¡Foto procesada correctamente!";
+          inputElement.value = "";
+        })
+        .catch(err => {
+          statusDiv.className = "error";
+          statusDiv.innerText = "Ocurrió un error al enviar la imagen.";
+          console.error(err);
         });
+      };
 
-        const data = await response.json();
-
-        if (data.status === "success") {
-          status.style.color = "green";
-          status.textContent = `¡Éxito! Se subieron ${data.count} foto(s) correctamente.`;
-          
-          document.getElementById('summary').style.display = "none";
-          uploadBtn.style.display = "none";
-          resetBtn.style.display = "block";
-        } else {
-          status.style.color = "red";
-          status.textContent = "Error del servidor: " + data.message;
-          uploadBtn.disabled = false;
-        }
-      } catch (err) {
-        console.error(err);
-        status.style.color = "red";
-        status.textContent = "Error al conectar con el servidor.";
-        uploadBtn.disabled = false;
-      }
+      reader.readAsDataURL(file);
     }
 
-    function resetForm() {
-      const status = document.getElementById('status');
-      const uploadBtn = document.getElementById('uploadBtn');
-      const resetBtn = document.getElementById('resetBtn');
+    galleryInput.addEventListener("change", function() {
+      procesarArchivo(this.files[0], this);
+    });
 
-      selectedFilesList = [];
-      document.getElementById('summary').style.display = "none";
-      status.textContent = "";
-
-      uploadBtn.disabled = false;
-      uploadBtn.style.display = "block";
-      resetBtn.style.display = "none";
-    }
-
-    function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-        reader.readAsDataURL(file);
-      });
-    }
+    cameraInput.addEventListener("change", function() {
+      procesarArchivo(this.files[0], this);
+    });
   </script>
+
 </body>
 </html>
