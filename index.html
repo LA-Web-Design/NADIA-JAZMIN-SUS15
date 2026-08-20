@@ -94,6 +94,16 @@
             cursor: not-allowed;
         }
 
+        .btn-reset {
+            background-color: #007bff;
+            color: #ffffff;
+            display: none;
+        }
+
+        .btn-reset:hover {
+            background-color: #0056b3;
+        }
+
         #counter-badge {
             font-size: 0.95rem;
             color: #ffc107;
@@ -120,20 +130,27 @@
     <h2>Subí tus fotos</h2>
     <p class="subtitle">Tomá fotos con la cámara o elegilas de tu galería. ¡Podés sumar de ambos lados antes de enviar!</p>
 
-    <label for="cameraInput" class="btn-action btn-select" id="camLabel">
-        📸 Tomar Fotos
-    </label>
-    <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple>
+    <div id="upload-section">
+        <label for="cameraInput" class="btn-action btn-select" id="camLabel">
+            📸 Tomar Fotos
+        </label>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple>
 
-    <label for="galleryInput" class="btn-action btn-select" id="galLabel">
-        🖼️ Imágenes de la Galería
-    </label>
-    <input type="file" id="galleryInput" accept="image/*" multiple>
+        <label for="galleryInput" class="btn-action btn-select" id="galLabel">
+            🖼️ Imágenes de la Galería
+        </label>
+        <input type="file" id="galleryInput" accept="image/*" multiple>
 
-    <div id="counter-badge"></div>
+        <div id="counter-badge"></div>
 
-    <button id="submitBtn" class="btn-action btn-submit" onclick="enviarFotos()">
-        Enviar al Evento
+        <button id="submitBtn" class="btn-action btn-submit" onclick="enviarFotos()">
+            Enviar al Evento
+        </button>
+    </div>
+
+    <!-- Botón para subir más fotos sin recargar ni escanear QR -->
+    <button id="resetBtn" class="btn-action btn-reset" onclick="reiniciarPanel()">
+        🔄 Subir más imágenes
     </button>
 
     <div id="status-msg"></div>
@@ -147,6 +164,8 @@
     const cameraInput = document.getElementById('cameraInput');
     const galleryInput = document.getElementById('galleryInput');
     const submitBtn = document.getElementById('submitBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const uploadSection = document.getElementById('upload-section');
     const counterBadge = document.getElementById('counter-badge');
     const statusMsg = document.getElementById('status-msg');
 
@@ -198,7 +217,7 @@
         for (let i = 0; i < archivosAcumulados.length; i++) {
             const file = archivosAcumulados[i];
             statusMsg.style.color = "#ffc107";
-            statusMsg.innerText = `Procesando y analizando ${i + 1} de ${archivosAcumulados.length}...`;
+            statusMsg.innerText = `Procesando ${i + 1} de ${archivosAcumulados.length}...`;
 
             try {
                 const base64Comprimido = await comprimirImagen(file);
@@ -224,22 +243,31 @@
                     correctas++;
                 } else {
                     rechazadas++;
-                    console.warn(`Foto rechazada (${file.name}):`, resultado.message);
                 }
             } catch (err) {
                 rechazadas++;
-                console.error("Error de red al enviar foto:", err);
             }
         }
 
-        statusMsg.style.color = correctas > 0 ? "#28a745" : "#dc3545";
-        statusMsg.innerText = `¡Proceso finalizado! Subidas: ${correctas} | Rechazadas por seguridad: ${rechazadas}`;
+        // Mostrar cartel final con éxito y habilitar botón para subir más
+        statusMsg.style.color = "#28a745";
+        statusMsg.innerHTML = `✨ ¡LISTO! Se subieron ${correctas} foto(s) correctamente.` + (rechazadas > 0 ? `<br><span style="color:#dc3545;">(${rechazadas} rechazadas)</span>` : '');
 
+        // Ocultar botones de selección y mostrar el botón de "Subir más imágenes"
+        uploadSection.style.display = "none";
+        resetBtn.style.display = "block";
+    }
+
+    function reiniciarPanel() {
         archivosAcumulados = [];
+        statusMsg.innerText = "";
+        counterBadge.innerText = "";
+        submitBtn.style.display = "none";
         submitBtn.disabled = false;
         cameraInput.disabled = false;
         galleryInput.disabled = false;
-        actualizarInterfaz();
+        resetBtn.style.display = "none";
+        uploadSection.style.display = "block";
     }
 
     function comprimirImagen(file) {
