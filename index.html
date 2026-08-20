@@ -58,7 +58,7 @@
             text-decoration: none;
         }
 
-        /* Botón estilo input file (Selector / Cámara) */
+        /* Botón de selección/cámara */
         .btn-select {
             background-color: transparent;
             color: #ffffff;
@@ -70,21 +70,26 @@
             background-color: rgba(255, 255, 255, 0.05);
         }
 
-        /* Botón verde principal de enviar */
+        /* Botón principal de enviar (Verde) */
         .btn-submit {
             background-color: #28a745;
             color: #ffffff;
+            display: none; /* Oculto hasta que haya fotos */
         }
 
-        .btn-submit:hover:not(:disabled) {
+        .btn-submit:hover {
             background-color: #218838;
         }
 
-        .btn-submit:disabled {
-            background-color: #444444;
-            color: #888888;
-            cursor: not-allowed;
-            opacity: 0.7;
+        /* Botón secundario para subir más fotos después de finalizar */
+        .btn-more {
+            background-color: #28a745;
+            color: #ffffff;
+            display: none; /* Oculto hasta que termine la subida */
+        }
+
+        .btn-more:hover {
+            background-color: #218838;
         }
 
         input[type="file"] {
@@ -95,6 +100,7 @@
             margin-top: 15px;
             font-size: 0.95rem;
             font-weight: 600;
+            color: #28a745;
         }
     </style>
 </head>
@@ -104,16 +110,21 @@
     <h2>Subí tus fotos</h2>
     <p>Podés elegir varias fotos o tomarlas con la cámara (máx. 10 MB por foto).</p>
 
-    <!-- Label que actúa como botón para abrir galería o cámara -->
+    <!-- Botón 1: Selector / Cámara -->
     <label for="fileInput" class="btn-action btn-select" id="selectLabel">
         📷 Seleccionar o sacar fotos
     </label>
     <input type="file" id="fileInput" accept="image/*" multiple>
 
-    <!-- Botón de envío -->
-    <button id="submitBtn" class="btn-action btn-submit" onclick="enviarFotos()" disabled>
-        Subir más imágenes
+    <!-- Botón 2: Enviar fotos seleccionadas -->
+    <button id="submitBtn" class="btn-action btn-submit" onclick="enviarFotos()">
+        Enviar fotos
     </button>
+
+    <!-- Botón 3: Subir más imágenes (aparece al terminar) -->
+    <label for="fileInput" class="btn-action btn-more" id="moreBtn">
+        + Subir más imágenes
+    </label>
 
     <div id="status-msg"></div>
 </div>
@@ -125,6 +136,7 @@
     const fileInput = document.getElementById('fileInput');
     const selectLabel = document.getElementById('selectLabel');
     const submitBtn = document.getElementById('submitBtn');
+    const moreBtn = document.getElementById('moreBtn');
     const statusMsg = document.getElementById('status-msg');
 
     fileInput.addEventListener('change', (e) => {
@@ -144,19 +156,20 @@
     function actualizarInterfaz() {
         if (archivosSeleccionados.length > 0) {
             selectLabel.innerText = `📷 ${archivosSeleccionados.length} foto(s) seleccionada(s)`;
-            submitBtn.disabled = false;
+            submitBtn.style.display = "block";
+            moreBtn.style.display = "none";
             statusMsg.innerText = "";
         } else {
             selectLabel.innerText = "📷 Seleccionar o sacar fotos";
-            submitBtn.disabled = true;
+            submitBtn.style.display = "none";
         }
     }
 
     async function enviarFotos() {
         if (archivosSeleccionados.length === 0) return;
 
-        submitBtn.disabled = true;
-        selectLabel.style.pointerEvents = "none";
+        submitBtn.style.display = "none";
+        selectLabel.style.display = "none";
         statusMsg.style.color = "#ffc107";
         statusMsg.innerText = "Subiendo fotos, por favor esperá...";
 
@@ -189,16 +202,13 @@
         statusMsg.style.color = "#28a745";
         statusMsg.innerText = `¡Éxito! Se subieron ${correctas} foto(s) correctamente.`;
         
-        // Limpiar estado
+        // Limpiar selección para el próximo lote
         archivosSeleccionados = [];
         fileInput.value = '';
-        
-        setTimeout(() => {
-            selectLabel.innerText = "📷 Seleccionar o sacar fotos";
-            selectLabel.style.pointerEvents = "auto";
-            submitBtn.disabled = true;
-            statusMsg.innerText = "";
-        }, 5000);
+
+        // Ocultar selectores y mostrar el botón de "+ Subir más imágenes"
+        selectLabel.style.display = "none";
+        moreBtn.style.display = "block";
     }
 
     function convertirBase64(file) {
