@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Foto Fiesta en Vivo!</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .hidden { display: none !important; }
+        .option-box { border: 2px dashed #dadce0; padding: 15px; border-radius: 8px; margin-bottom: 15px; cursor: pointer; background: #fafafa; }
+        .option-box:hover { border-color: #1a73e8; background: #f8f9fa; }
+        textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #dadce0; resize: none; height: 80px; box-sizing: border-box; }
+        button.primary { background: #1a73e8; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        #loading { margin-top: 15px; color: #1a73e8; font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <!-- FASE 1: LOGIN SENCILLO -->
+        <div id="login-screen">
+            <h2>🎉 ¡Bienvenidos a la Fiesta!</h2>
+            <p style="color: #666; font-size: 14px;">Ingresá tu nombre para identificarte en los recuerdos del evento.</p>
+            <input type="text" id="input-nombre" placeholder="Tu nombre y apellido" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #dadce0; box-sizing: border-box; margin-top: 10px;">
+            <button class="primary" onclick="iniciarSesion()" style="margin-top: 15px;">Entrar a la Fiesta</button>
+        </div>
+
+        <!-- FASE 2: PANEL PRINCIPAL -->
+        <div id="app-screen" class="hidden">
+            <div style="background: #e8f0fe; padding: 10px; border-radius: 8px; margin-bottom: 20px; color: #1a73e8; font-size: 14px;">
+                👤 Hola, <strong id="user-name">Invitado</strong>
+            </div>
+
+            <h3>¿Qué querés compartir?</h3>
+
+            <!-- Opción 1: Foto -->
+            <div class="option-box" onclick="document.getElementById('file-photo').click()">
+                📸 <strong>Subir Foto</strong>
+                <input type="file" id="file-photo" accept="image/*" class="hidden" onchange="procesarArchivo(this, 'foto')">
+            </div>
+
+            <!-- Opción 2: Video -->
+            <div class="option-box" onclick="document.getElementById('file-video').click()">
+                🎥 <strong>Subir Saludo / Video</strong>
+                <input type="file" id="file-video" accept="video/*" class="hidden" onchange="procesarArchivo(this, 'video')">
+            </div>
+
+            <!-- Opción 3: Texto -->
+            <div style="text-align: left; margin-top: 15px;">
+                <label style="font-size: 13px; font-weight: bold; color: #333;">✍️ Dedicatoria para la pantalla:</label>
+                <textarea id="text-message" maxlength="150" placeholder="Escribe un mensaje..."></textarea>
+                <button class="primary" onclick="enviarTexto()">Enviar Mensaje</button>
+            </div>
+
+            <div id="loading" class="hidden">⏳ Guardando en Google Drive... Un momento...</div>
+        </div>
+    </div>
+
+    <script>
+        // Tu URL exacta de Apps Script ya conectada:
+        const URL_BACKEND = "https://script.google.com/macros/s/AKfycbwR3jniWrcz6p8k06LBfT4TxDMsLkhlbpnX8dws0dEB2rElX3pJW12T9Y6xFFIY9wYo/exec";
+
+        let usuarioActual = "";
+
+        function iniciarSesion() {
+            const nombre = document.getElementById('input-nombre').value.trim();
+            if (!nombre) {
+                alert("Por favor, ingresá tu nombre.");
+                return;
+            }
+            usuarioActual = nombre;
+            document.getElementById('user-name').innerText = usuarioActual;
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+        }
+
+        function enviarTexto() {
+            const texto = document.getElementById('text-message').value.trim();
+            if (!texto) {
+                alert("Escribí un mensaje primero.");
+                return;
+            }
+            enviarAlServidor({
+                tipo: "texto",
+                usuario: usuarioActual,
+                contenido: texto
+            });
+        }
+
+        function procesarArchivo(input, tipo) {
+            const archivo = input.files[0];
+            if (!archivo) return;
+
+            const lector = new FileReader();
+            document.getElementById('loading').classList.remove('hidden');
+
+            lector.onload = function(e) {
+                const base64Datos = e.target.result;
+                enviarAlServidor({
+                    tipo: tipo,
+                    usuario: usuarioActual,
+                    contenido: base64Datos,
+                    nombreArchivo: archivo.name
+                });
+            };
+            lector.readAsDataURL(archivo);
+        }
+
+        function enviarAlServidor(datos) {
+            document.getElementById('loading').classList.remove('hidden');
+
+            fetch(URL_BACKEND, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(datos)
+            })
+            .then(() => {
+                document.getElementById('loading').classList.add('hidden');
+                alert("¡Enviado con éxito a la fiesta! 🎉");
+                document.getElementById('text-message').value = "";
+            })
+            .catch(error => {
+                document.getElementById('loading').classList.add('hidden');
+                console.error("Error:", error);
+                alert("Hubo un error al enviar, intentá de nuevo.");
+            });
+        }
+    </script>
+</body>
+</html>
