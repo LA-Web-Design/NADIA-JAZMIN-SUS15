@@ -6,11 +6,11 @@
     <title>Subida de Fotos - Evento</title>
     <style>
         :root {
-            --primary-color: #28a745; /* Verde principal */
+            --primary-color: #28a745;
             --primary-hover: #218838;
-            --bg-color: #121212;     /* Fondo oscuro */
-            --card-bg: #1e1e1e;      /* Fondo de la tarjeta */
-            --text-color: #ffffff;   /* Texto claro */
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
             --border-color: #6c757d;
         }
 
@@ -47,11 +47,11 @@
         p.subtitle {
             color: #a0a0a0;
             font-size: 0.95rem;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             line-height: 1.4;
         }
 
-        /* Estilo de los botones principales */
+        /* Estilo general de los botones */
         .btn-action {
             display: block;
             width: 100%;
@@ -68,7 +68,7 @@
             text-decoration: none;
         }
 
-        /* Botón de selección/cámara (Dashed) */
+        /* Botones de selección (cámara y galería) */
         .btn-select {
             background-color: transparent;
             color: var(--text-color);
@@ -80,11 +80,11 @@
             background-color: rgba(255, 255, 255, 0.05);
         }
 
-        /* Botón principal de enviar (Verde) */
+        /* Botón de envío principal */
         .btn-submit {
             background-color: var(--primary-color);
             color: #ffffff;
-            display: none; /* Oculto por defecto */
+            display: none;
         }
 
         .btn-submit:hover:not(:disabled) {
@@ -97,18 +97,16 @@
             cursor: not-allowed;
         }
 
-        /* Botón secundario para subir más fotos después de finalizar */
-        .btn-more {
-            background-color: var(--primary-color);
-            color: #ffffff;
-            display: none; /* Oculto hasta que finaliza la subida */
+        /* Contador de archivos acumulados */
+        #counter-badge {
+            font-size: 0.95rem;
+            color: #ffc107;
+            font-weight: 600;
+            margin-bottom: 15px;
+            min-height: 1.2em;
         }
 
-        .btn-more:hover {
-            background-color: var(--primary-hover);
-        }
-
-        /* Ocultar el input file real */
+        /* Ocultar inputs reales de archivos */
         input[type="file"] {
             display: none;
         }
@@ -117,7 +115,7 @@
             margin-top: 20px;
             font-size: 0.95rem;
             font-weight: 600;
-            min-height: 1.2em; /* Para que no salte la interfaz al aparecer */
+            min-height: 1.2em;
         }
     </style>
 </head>
@@ -125,133 +123,176 @@
 
 <div class="card">
     <h2>Subí tus fotos</h2>
-    <p class="subtitle">Podés elegir varias fotos o tomarlas con la cámara (máx. 10 MB por foto).</p>
+    <p class="subtitle">Tomá fotos con la cámara o elegilas de tu galería. ¡Podés sumar de ambos lados antes de enviar!</p>
 
-    <!-- Botón 1: Selector / Cámara (Abre galería o cámara en móviles) -->
-    <label for="fileInput" class="btn-action btn-select" id="selectLabel">
-        📷 Seleccionar o sacar fotos
+    <!-- Botón 1: Tomar Fotos con la Cámara -->
+    <label for="cameraInput" class="btn-action btn-select" id="camLabel">
+        📸 Tomar Fotos
     </label>
-    <input type="file" id="fileInput" accept="image/*" multiple>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple>
 
-    <!-- Botón 2: Enviar fotos seleccionadas -->
+    <!-- Botón 2: Imágenes de la Galería -->
+    <label for="galleryInput" class="btn-action btn-select" id="galLabel">
+        🖼️ Imágenes de la Galería
+    </label>
+    <input type="file" id="galleryInput" accept="image/*" multiple>
+
+    <!-- Contador de selección -->
+    <div id="counter-badge"></div>
+
+    <!-- Botón 3: Enviar conjunto -->
     <button id="submitBtn" class="btn-action btn-submit" onclick="enviarFotos()">
         Enviar al Evento
     </button>
-
-    <!-- Botón 3: Subir más imágenes (aparece al terminar) -->
-    <label for="fileInput" class="btn-action btn-more" id="moreBtn">
-        + Subir más imágenes
-    </label>
 
     <div id="status-msg"></div>
 </div>
 
 <script>
-    // PEGA ACÁ TU URL DE LA APP WEB DE GOOGLE APPS SCRIPT
+    // URL DE TU APLICACIÓN WEB DE GOOGLE APPS SCRIPT
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxz6aPNA3RMYnxP38dg4tSTXJViQtC2C_cBn7kcn5tu3ro1LFffwyAJP67varPvQLs5/exec";
 
-    let archivosSeleccionados = [];
-    const fileInput = document.getElementById('fileInput');
-    const selectLabel = document.getElementById('selectLabel');
+    let archivosAcumulados = [];
+
+    const cameraInput = document.getElementById('cameraInput');
+    const galleryInput = document.getElementById('galleryInput');
     const submitBtn = document.getElementById('submitBtn');
-    const moreBtn = document.getElementById('moreBtn');
+    const counterBadge = document.getElementById('counter-badge');
     const statusMsg = document.getElementById('status-msg');
 
-    // Al seleccionar archivos
-    fileInput.addEventListener('change', (e) => {
-        const nuevos = Array.from(e.target.files);
-        
-        nuevos.forEach(file => {
-            if (file.size > 10 * 1024 * 1024) {
-                alert(`La foto "${file.name}" supera los 10 MB y fue descartada.`);
-                return;
-            }
-            archivosSeleccionados.push(file);
-        });
-
-        actualizarInterfaz();
+    // Evento al tomar fotos con la cámara (acumula)
+    cameraInput.addEventListener('change', (e) => {
+        agregarArchivos(e.target.files);
+        cameraInput.value = ''; // Resetear para permitir capturar de nuevo
     });
 
-    // Actualiza la interfaz según si hay archivos seleccionados
+    // Evento al seleccionar de la galería (acumula)
+    galleryInput.addEventListener('change', (e) => {
+        agregarArchivos(e.target.files);
+        galleryInput.value = ''; // Resetear para permitir seleccionar más
+    });
+
+    function agregarArchivos(nuevosFiles) {
+        const list = Array.from(nuevosFiles);
+        list.forEach(file => {
+            if (file.size > 15 * 1024 * 1024) {
+                alert(`La foto "${file.name}" supera los 15 MB y fue descartada.`);
+                return;
+            }
+            archivosAcumulados.push(file);
+        });
+        actualizarInterfaz();
+    }
+
     function actualizarInterfaz() {
-        if (archivosSeleccionados.length > 0) {
-            // Cambiar texto del primer botón y mostrar botón de envío
-            selectLabel.innerText = `📁 ${archivosSeleccionados.length} foto(s) seleccionada(s)`;
+        const total = archivosAcumulados.length;
+        if (total > 0) {
+            counterBadge.innerText = `📂 Total acumulado: ${total} foto(s) lista(s)`;
             submitBtn.style.display = "block";
-            moreBtn.style.display = "none";
             statusMsg.innerText = "";
-            statusMsg.style.color = "#a0a0a0";
         } else {
-            // Volver al estado inicial
-            selectLabel.innerText = "📷 Seleccionar o sacar fotos";
+            counterBadge.innerText = "";
             submitBtn.style.display = "none";
             statusMsg.innerText = "";
         }
     }
 
-    // Lógica de envío
+    // Función principal de envío con compresión previa
     async function enviarFotos() {
-        if (archivosSeleccionados.length === 0) return;
+        if (archivosAcumulados.length === 0) return;
 
-        // Deshabilitar botones y mostrar mensaje de carga
+        // Deshabilitar controles durante el envío
         submitBtn.disabled = true;
-        submitBtn.innerText = "Enviando...";
-        selectLabel.style.pointerEvents = "none";
-        statusMsg.style.color = "#ffc107"; // Amarillo ámbar
-        statusMsg.innerText = "Subiendo fotos, por favor esperá...";
-
+        cameraInput.disabled = true;
+        galleryInput.disabled = true;
+        
         let correctas = 0;
+        let rechazadas = 0;
 
-        for (let i = 0; i < archivosSeleccionados.length; i++) {
-            const file = archivosSeleccionados[i];
-            statusMsg.innerText = `Subiendo ${i + 1} de ${archivosSeleccionados.length}...`;
+        for (let i = 0; i < archivosAcumulados.length; i++) {
+            const file = archivosAcumulados[i];
+            statusMsg.style.color = "#ffc107";
+            statusMsg.innerText = `Procesando y analizando ${i + 1} de ${archivosAcumulados.length}...`;
 
             try {
-                const base64Data = await convertirBase64(file);
-                
-                // Enviar al script
-                await fetch(WEB_APP_URL, {
+                // Comprimir imagen antes de mandar para evitar saturar Cloud Vision
+                const base64Comprimido = await comprimirImagen(file);
+
+                const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
-                        file: base64Data,
+                        file: base64Comprimido,
                         name: file.name,
-                        mimeType: file.type
+                        mimeType: "image/jpeg"
                     })
                 });
 
-                correctas++;
+                const resultado = await response.json();
+
+                if (resultado.status === "success") {
+                    correctas++;
+                } else {
+                    rechazadas++;
+                    console.warn(`Foto rechazada (${file.name}):`, resultado.message);
+                }
             } catch (err) {
-                console.error("Error al enviar:", err);
+                rechazadas++;
+                console.error("Error de red al enviar foto:", err);
             }
         }
 
-        // Finalizar subida
-        statusMsg.style.color = "#28a745"; // Verde éxito
-        statusMsg.innerText = `¡Éxito! Se subieron ${correctas} foto(s) correctamente.`;
-        
-        // Limpiar selección para el próximo lote
-        archivosSeleccionados = [];
-        fileInput.value = '';
+        // Mostrar resumen final
+        statusMsg.style.color = correctas > 0 ? "#28a745" : "#dc3545";
+        statusMsg.innerText = `¡Proceso finalizado! Subidas: ${correctas} | Rechazadas por seguridad: ${rechazadas}`;
 
-        // Ocultar selectores y mostrar el botón de "+ Subir más imágenes"
-        selectLabel.style.display = "none";
-        submitBtn.style.display = "none";
-        moreBtn.style.display = "block";
-        
-        // Restaurar botón de envío para la próxima vez
+        // Limpiar lista y restablecer interfaz para seguir subiendo más si se desea
+        archivosAcumulados = [];
         submitBtn.disabled = false;
-        submitBtn.innerText = "Enviar al Evento";
-        selectLabel.style.pointerEvents = "auto";
+        cameraInput.disabled = false;
+        galleryInput.disabled = false;
+        actualizarInterfaz();
     }
 
-    function convertirBase64(file) {
+    // Función para comprimir la imagen en el navegador a un ancho máx de 1000px (Súper liviana para la IA)
+    function comprimirImagen(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    const MAX_WIDTH = 1000;
+                    const MAX_HEIGHT = 1000;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Convertir a JPEG comprimido al 82% de calidad
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                    resolve(dataUrl);
+                };
+                img.onerror = (error) => reject(error);
+            };
+            reader.onerror = (error) => reject(error);
         });
     }
 </script>
