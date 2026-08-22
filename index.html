@@ -12,24 +12,24 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        /* 1. FONDO AZUL CELESTE CON TEXTURA RUGOSA */
+        /* 1. FONDO AZUL CELESTE CON TEXTURA MÁS VISIBLE */
         body {
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
-            background-color: #72fdf1 !important; 
+            background-color: #62ebd9 !important; 
             background-image: 
-                radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, rgba(43,82,154,0.1) 100%),
-                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.25'/%3E%3C/svg%3E") !important;
+                radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, rgba(20,60,110,0.2) 100%),
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.35'/%3E%3C/svg%3E") !important;
         }
 
-        /* 2. PANEL VIOLETA OSCURO ESTILO CUERO */
+        /* 2. PANEL VIOLETA OSCURO CON TEXTURA DE CUERO */
         .card {
             width: 100% !important;
             max-width: 360px !important;
-            padding: 30px 25px !important;
+            padding: 30px 22px !important;
             border-radius: 24px !important;
             background-color: #21132b !important;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.3'/%3E%3C/svg%3E") !important;
@@ -56,20 +56,20 @@
 
         p.subtitle {
             color: #b0a0c0 !important;
-            font-size: 0.9rem !important;
+            font-size: 0.88rem !important;
             margin-bottom: 20px !important;
             line-height: 1.4 !important;
         }
 
-        /* 3. BOTONES ESTILO PÍLDORA CIAN TRIDIMENSIONAL */
+        /* 3. BOTONES CON GRID (Icono Izquierda / Texto Centrado) */
         .btn-action {
-            display: flex !important;
+            display: grid !important;
+            grid-template-columns: 24px 1fr 24px; /* Icono / Texto / Espaciador */
             align-items: center !important;
-            justify-content: center !important;
             width: 100% !important;
             height: 52px !important;
-            padding: 0 15px !important;
-            font-size: 0.88rem !important;
+            padding: 0 18px !important;
+            font-size: 0.82rem !important;
             font-weight: 900 !important;
             letter-spacing: 0.8px !important;
             text-transform: uppercase !important;
@@ -82,6 +82,14 @@
             text-decoration: none !important;
         }
 
+        .btn-action span {
+            text-align: center;
+        }
+
+        .btn-action svg {
+            justify-self: start;
+        }
+
         .btn-action:hover:not(:disabled) {
             filter: brightness(1.08) !important;
         }
@@ -90,7 +98,7 @@
             transform: translateY(2px) !important;
         }
 
-        /* Degradado Cilíndrico Cian Metálico */
+        /* BOTONES CIAN TRIDIMENSIONALES */
         .btn-select, .btn-submit {
             background: linear-gradient(
                 180deg, 
@@ -113,7 +121,7 @@
             filter: grayscale(0.5) !important;
         }
 
-        /* 4. BOTÓN VERDE "SUBIR MÁS" */
+        /* BOTÓN VERDE "SUBIR MÁS" */
         .btn-reset {
             background: linear-gradient(
                 180deg, 
@@ -132,7 +140,7 @@
         }
 
         #counter-badge {
-            font-size: 0.9rem !important;
+            font-size: 0.88rem !important;
             color: #fffd8d !important;
             font-weight: 700 !important;
             margin-bottom: 12px !important;
@@ -161,25 +169,33 @@
 
     <div id="upload-section" style="width: 100%;">
         <label for="cameraInput" class="btn-action btn-select" id="camLabel">
-            📸 Tomar Fotos
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <span>Tomar Fotos</span>
+            <i></i>
         </label>
         <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple>
 
         <label for="galleryInput" class="btn-action btn-select" id="galLabel">
-            🖼️ Imágenes de la Galería
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span>Imágenes de la Galería</span>
+            <i></i>
         </label>
         <input type="file" id="galleryInput" accept="image/*" multiple>
 
         <div id="counter-badge"></div>
 
         <button id="submitBtn" class="btn-action btn-submit" onclick="enviarFotos()">
-            🚀 Enviar al Evento
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span>Enviar al Evento</span>
+            <i></i>
         </button>
     </div>
 
     <!-- Botón verde para subir más -->
     <button id="resetBtn" class="btn-action btn-reset" onclick="reiniciarPanel()">
-        🔄 Subir más imágenes
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        <span>Subir más imágenes</span>
+        <i></i>
     </button>
 
     <div id="status-msg"></div>
@@ -225,7 +241,7 @@
         const total = archivosAcumulados.length;
         if (total > 0) {
             counterBadge.innerText = `📂 Total acumulado: ${total} foto(s) lista(s)`;
-            submitBtn.style.display = "flex";
+            submitBtn.style.display = "grid";
             statusMsg.innerText = "";
         } else {
             counterBadge.innerText = "";
@@ -285,7 +301,7 @@
 
         // Ocultar botones de selección y mostrar el botón de "Subir más imágenes"
         uploadSection.style.display = "none";
-        resetBtn.style.display = "flex";
+        resetBtn.style.display = "grid";
     }
 
     function reiniciarPanel() {
