@@ -5,122 +5,151 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subida de Fotos - Evento</title>
     <style>
-        :root {
-            --primary-color: #28a745;
-            --primary-hover: #218838;
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #ffffff;
-            --border-color: #6c757d;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
         }
 
+        /* 1. FONDO AZUL CELESTE CON TEXTURA RUGOSA */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            padding: 20px;
+            background-color: #72fdf1 !important; 
+            background-image: 
+                radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, rgba(43,82,154,0.1) 100%),
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.25'/%3E%3C/svg%3E") !important;
         }
 
+        /* 2. PANEL VIOLETA OSCURO ESTILO CUERO */
         .card {
-            background-color: var(--card-bg);
-            padding: 35px 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 400px;
+            width: 100% !important;
+            max-width: 360px !important;
+            padding: 30px 25px !important;
+            border-radius: 24px !important;
+            background-color: #21132b !important;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.3'/%3E%3C/svg%3E") !important;
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.7),
+                inset 0 1px 2px rgba(255, 255, 255, 0.15),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.8) !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
+            border: none !important;
         }
 
         h2 {
-            margin-top: 0;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--text-color);
-            margin-bottom: 10px;
+            color: #ffffff !important;
+            font-size: 1.3rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 1.5px !important;
+            text-transform: uppercase !important;
+            margin-bottom: 8px !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
         }
 
         p.subtitle {
-            color: #a0a0a0;
-            font-size: 0.95rem;
-            margin-bottom: 25px;
-            line-height: 1.4;
+            color: #b0a0c0 !important;
+            font-size: 0.9rem !important;
+            margin-bottom: 20px !important;
+            line-height: 1.4 !important;
         }
 
+        /* 3. BOTONES ESTILO PÍLDORA CIAN TRIDIMENSIONAL */
         .btn-action {
-            display: block;
-            width: 100%;
-            padding: 14px 20px;
-            font-size: 1.05rem;
-            font-weight: 600;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            text-align: center;
-            box-sizing: border-box;
-            transition: background-color 0.2s, opacity 0.2s;
-            margin-bottom: 15px;
-            text-decoration: none;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            height: 52px !important;
+            padding: 0 15px !important;
+            font-size: 0.88rem !important;
+            font-weight: 900 !important;
+            letter-spacing: 0.8px !important;
+            text-transform: uppercase !important;
+            border-radius: 26px !important;
+            border: none !important;
+            cursor: pointer !important;
+            box-sizing: border-box !important;
+            transition: transform 0.1s ease, filter 0.1s ease !important;
+            margin-bottom: 15px !important;
+            text-decoration: none !important;
         }
 
-        .btn-select {
-            background-color: transparent;
-            color: var(--text-color);
-            border: 2px dashed var(--border-color);
+        .btn-action:hover:not(:disabled) {
+            filter: brightness(1.08) !important;
         }
 
-        .btn-select:hover {
-            border-color: var(--text-color);
-            background-color: rgba(255, 255, 255, 0.05);
+        .btn-action:active:not(:disabled) {
+            transform: translateY(2px) !important;
         }
 
-        .btn-submit {
-            background-color: var(--primary-color);
-            color: #ffffff;
-            display: none;
-        }
-
-        .btn-submit:hover:not(:disabled) {
-            background-color: var(--primary-hover);
+        /* Degradado Cilíndrico Cian Metálico */
+        .btn-select, .btn-submit {
+            background: linear-gradient(
+                180deg, 
+                #1c8491 0%, 
+                #2ee8d6 30%, 
+                #72fdf1 50%, 
+                #2be0cf 70%, 
+                #105963 100%
+            ) !important;
+            color: #0b1c20 !important;
+            box-shadow: 
+                0 5px 15px rgba(0, 0, 0, 0.5),
+                inset 0 2px 3px rgba(255, 255, 255, 0.8),
+                inset 0 -3px 4px rgba(0, 0, 0, 0.4) !important;
         }
 
         .btn-submit:disabled {
-            background-color: #444;
-            color: #999;
-            cursor: not-allowed;
+            opacity: 0.6 !important;
+            cursor: not-allowed !important;
+            filter: grayscale(0.5) !important;
         }
 
+        /* 4. BOTÓN VERDE "SUBIR MÁS" */
         .btn-reset {
-            background-color: #007bff;
-            color: #ffffff;
+            background: linear-gradient(
+                180deg, 
+                #1a7a2e 0%, 
+                #3ee062 30%, 
+                #85fd9f 50%, 
+                #36ca58 70%, 
+                #0f521f 100%
+            ) !important;
+            color: #051a09 !important;
+            box-shadow: 
+                0 5px 15px rgba(0, 0, 0, 0.5),
+                inset 0 2px 3px rgba(255, 255, 255, 0.8),
+                inset 0 -3px 4px rgba(0, 0, 0, 0.4) !important;
             display: none;
-        }
-
-        .btn-reset:hover {
-            background-color: #0056b3;
         }
 
         #counter-badge {
-            font-size: 0.95rem;
-            color: #ffc107;
-            font-weight: 600;
-            margin-bottom: 15px;
-            min-height: 1.2em;
+            font-size: 0.9rem !important;
+            color: #fffd8d !important;
+            font-weight: 700 !important;
+            margin-bottom: 12px !important;
+            min-height: 1.2em !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
         }
 
         input[type="file"] {
-            display: none;
+            display: none !important;
         }
 
         #status-msg {
-            margin-top: 20px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            min-height: 1.2em;
+            margin-top: 10px !important;
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+            min-height: 1.2em !important;
+            width: 100% !important;
         }
     </style>
 </head>
@@ -130,7 +159,7 @@
     <h2>Subí tus fotos</h2>
     <p class="subtitle">Tomá fotos con la cámara o elegilas de tu galería. ¡Podés sumar de ambos lados antes de enviar!</p>
 
-    <div id="upload-section">
+    <div id="upload-section" style="width: 100%;">
         <label for="cameraInput" class="btn-action btn-select" id="camLabel">
             📸 Tomar Fotos
         </label>
@@ -144,11 +173,11 @@
         <div id="counter-badge"></div>
 
         <button id="submitBtn" class="btn-action btn-submit" onclick="enviarFotos()">
-            Enviar al Evento
+            🚀 Enviar al Evento
         </button>
     </div>
 
-    <!-- Botón para subir más fotos sin recargar ni escanear QR -->
+    <!-- Botón verde para subir más -->
     <button id="resetBtn" class="btn-action btn-reset" onclick="reiniciarPanel()">
         🔄 Subir más imágenes
     </button>
@@ -157,6 +186,7 @@
 </div>
 
 <script>
+    // TU LÓGICA JAVASCRIPT EXACTA E INTACTA
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx-nJQ25ybvnDQTWnhvUn8IWFREKyTtNq_JlbttDPsAzwJRA30itIIf5LMoMxHqtoI/exec";
 
     let archivosAcumulados = [];
@@ -195,7 +225,7 @@
         const total = archivosAcumulados.length;
         if (total > 0) {
             counterBadge.innerText = `📂 Total acumulado: ${total} foto(s) lista(s)`;
-            submitBtn.style.display = "block";
+            submitBtn.style.display = "flex";
             statusMsg.innerText = "";
         } else {
             counterBadge.innerText = "";
@@ -216,7 +246,7 @@
 
         for (let i = 0; i < archivosAcumulados.length; i++) {
             const file = archivosAcumulados[i];
-            statusMsg.style.color = "#ffc107";
+            statusMsg.style.color = "#fffd8d";
             statusMsg.innerText = `Procesando ${i + 1} de ${archivosAcumulados.length}...`;
 
             try {
@@ -250,12 +280,12 @@
         }
 
         // Mostrar cartel final con éxito y habilitar botón para subir más
-        statusMsg.style.color = "#28a745";
+        statusMsg.style.color = "#85fd9f";
         statusMsg.innerHTML = `✨ ¡LISTO! Se subieron ${correctas} foto(s) correctamente.` + (rechazadas > 0 ? `<br><span style="color:#dc3545;">(${rechazadas} rechazadas)</span>` : '');
 
         // Ocultar botones de selección y mostrar el botón de "Subir más imágenes"
         uploadSection.style.display = "none";
-        resetBtn.style.display = "block";
+        resetBtn.style.display = "flex";
     }
 
     function reiniciarPanel() {
