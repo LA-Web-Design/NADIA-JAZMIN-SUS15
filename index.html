@@ -5,161 +5,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subida de Fotos - Evento</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, -apple-system, sans-serif;
+    }
 
-        /* 1. FONDO AZUL CELESTE CON TEXTURA MÁS VISIBLE */
-        body {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            background-color: #62ebd9 !important; 
-            background-image: 
-                radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, rgba(20,60,110,0.2) 100%),
-                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.35'/%3E%3C/svg%3E") !important;
-        }
+    /* 1. FONDO CELESTE CON TRAMA / PATRÓN GEOMÉTRICO ONDULADO */
+    body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        background-color: #4cdbc8 !important; 
+        background-image: 
+            radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.4) 0%, rgba(10, 40, 70, 0.3) 100%),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' viewBox='0 0 800 800'%3E%3Cg fill-opacity='0.15' stroke='%23ffffff' stroke-width='2.5'%3E%3Cpath d='M-100,200 C150,300 350,100 600,250 C850,400 1000,150 1100,300' fill='none'/%3E%3Cpath d='M-100,350 C150,450 350,250 600,400 C850,550 1000,300 1100,450' fill='none'/%3E%3Cpath d='M-100,500 C150,600 350,400 600,550 C850,700 1000,450 1100,600' fill='none'/%3E%3Ccircle cx='400' cy='400' r='300' fill='none' stroke-dasharray='10 15'/%3E%3Ccircle cx='400' cy='400' r='180' fill='none' stroke-dasharray='6 12'/%3E%3C/g%3E%3C/svg%3E") !important;
+        background-size: cover;
+        background-position: center;
+    }
 
-        /* 2. PANEL VIOLETA OSCURO CON TEXTURA DE CUERO */
-        .card {
-            width: 100% !important;
-            max-width: 360px !important;
-            padding: 30px 22px !important;
-            border-radius: 24px !important;
-            background-color: #21132b !important;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.3'/%3E%3C/svg%3E") !important;
-            box-shadow: 
-                0 20px 50px rgba(0, 0, 0, 0.7),
-                inset 0 1px 2px rgba(255, 255, 255, 0.15),
-                inset 0 -2px 4px rgba(0, 0, 0, 0.8) !important;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            border: none !important;
-        }
+    /* 2. PANEL VIOLETA OSCURO CON SU TEXTURA ORIGINAL (COMO EN LA CAPTURA) */
+    .card {
+        width: 100% !important;
+        max-width: 360px !important;
+        padding: 30px 22px !important;
+        border-radius: 24px !important;
+        background-color: #21132b !important;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.3'/%3E%3C/svg%3E") !important;
+        box-shadow: 
+            0 20px 50px rgba(0, 0, 0, 0.7),
+            inset 0 1px 2px rgba(255, 255, 255, 0.15),
+            inset 0 -2px 4px rgba(0, 0, 0, 0.8) !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        border: none !important;
+    }
 
-        h2 {
-            color: #ffffff !important;
-            font-size: 1.3rem !important;
-            font-weight: 800 !important;
-            letter-spacing: 1.5px !important;
-            text-transform: uppercase !important;
-            margin-bottom: 8px !important;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
-        }
+    h2 {
+        color: #ffffff !important;
+        font-size: 1.3rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 1.5px !important;
+        text-transform: uppercase !important;
+        margin-bottom: 8px !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+    }
 
-        p.subtitle {
-            color: #b0a0c0 !important;
-            font-size: 0.88rem !important;
-            margin-bottom: 20px !important;
-            line-height: 1.4 !important;
-        }
+    p.subtitle {
+        color: #b0a0c0 !important;
+        font-size: 0.88rem !important;
+        margin-bottom: 20px !important;
+        line-height: 1.4 !important;
+    }
 
-        /* 3. BOTONES CON GRID (Icono Izquierda / Texto Centrado) */
-        .btn-action {
-            display: grid !important;
-            grid-template-columns: 24px 1fr 24px; /* Icono / Texto / Espaciador */
-            align-items: center !important;
-            width: 100% !important;
-            height: 52px !important;
-            padding: 0 18px !important;
-            font-size: 0.82rem !important;
-            font-weight: 900 !important;
-            letter-spacing: 0.8px !important;
-            text-transform: uppercase !important;
-            border-radius: 26px !important;
-            border: none !important;
-            cursor: pointer !important;
-            box-sizing: border-box !important;
-            transition: transform 0.1s ease, filter 0.1s ease !important;
-            margin-bottom: 15px !important;
-            text-decoration: none !important;
-        }
+    /* 3. BOTONES CON ICONO A LA IZQUIERDA Y TEXTO CENTRADO */
+    .btn-action {
+        display: grid !important;
+        grid-template-columns: 24px 1fr 24px;
+        align-items: center !important;
+        width: 100% !important;
+        height: 52px !important;
+        padding: 0 18px !important;
+        font-size: 0.82rem !important;
+        font-weight: 900 !important;
+        letter-spacing: 0.8px !important;
+        text-transform: uppercase !important;
+        border-radius: 26px !important;
+        border: none !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+        transition: transform 0.1s ease, filter 0.1s ease !important;
+        margin-bottom: 15px !important;
+        text-decoration: none !important;
+    }
 
-        .btn-action span {
-            text-align: center;
-        }
+    .btn-action span {
+        text-align: center;
+    }
 
-        .btn-action svg {
-            justify-self: start;
-        }
+    .btn-action svg {
+        justify-self: start;
+    }
 
-        .btn-action:hover:not(:disabled) {
-            filter: brightness(1.08) !important;
-        }
+    .btn-action:hover:not(:disabled) {
+        filter: brightness(1.08) !important;
+    }
 
-        .btn-action:active:not(:disabled) {
-            transform: translateY(2px) !important;
-        }
+    .btn-action:active:not(:disabled) {
+        transform: translateY(2px) !important;
+    }
 
-        /* BOTONES CIAN TRIDIMENSIONALES */
-        .btn-select, .btn-submit {
-            background: linear-gradient(
-                180deg, 
-                #1c8491 0%, 
-                #2ee8d6 30%, 
-                #72fdf1 50%, 
-                #2be0cf 70%, 
-                #105963 100%
-            ) !important;
-            color: #0b1c20 !important;
-            box-shadow: 
-                0 5px 15px rgba(0, 0, 0, 0.5),
-                inset 0 2px 3px rgba(255, 255, 255, 0.8),
-                inset 0 -3px 4px rgba(0, 0, 0, 0.4) !important;
-        }
+    /* BOTONES CIAN TRIDIMENSIONALES */
+    .btn-select, .btn-submit {
+        background: linear-gradient(
+            180deg, 
+            #1c8491 0%, 
+            #2ee8d6 30%, 
+            #72fdf1 50%, 
+            #2be0cf 70%, 
+            #105963 100%
+        ) !important;
+        color: #0b1c20 !important;
+        box-shadow: 
+            0 5px 15px rgba(0, 0, 0, 0.5),
+            inset 0 2px 3px rgba(255, 255, 255, 0.8),
+            inset 0 -3px 4px rgba(0, 0, 0, 0.4) !important;
+    }
 
-        .btn-submit:disabled {
-            opacity: 0.6 !important;
-            cursor: not-allowed !important;
-            filter: grayscale(0.5) !important;
-        }
+    .btn-submit:disabled {
+        opacity: 0.6 !important;
+        cursor: not-allowed !important;
+        filter: grayscale(0.5) !important;
+    }
 
-        /* BOTÓN VERDE "SUBIR MÁS" */
-        .btn-reset {
-            background: linear-gradient(
-                180deg, 
-                #1a7a2e 0%, 
-                #3ee062 30%, 
-                #85fd9f 50%, 
-                #36ca58 70%, 
-                #0f521f 100%
-            ) !important;
-            color: #051a09 !important;
-            box-shadow: 
-                0 5px 15px rgba(0, 0, 0, 0.5),
-                inset 0 2px 3px rgba(255, 255, 255, 0.8),
-                inset 0 -3px 4px rgba(0, 0, 0, 0.4) !important;
-            display: none;
-        }
+    /* BOTÓN VERDE "SUBIR MÁS" */
+    .btn-reset {
+        background: linear-gradient(
+            180deg, 
+            #1a7a2e 0%, 
+            #3ee062 30%, 
+            #85fd9f 50%, 
+            #36ca58 70%, 
+            #0f521f 100%
+        ) !important;
+        color: #051a09 !important;
+        box-shadow: 
+            0 5px 15px rgba(0, 0, 0, 0.5),
+            inset 0 2px 3px rgba(255, 255, 255, 0.8),
+            inset 0 -3px 4px rgba(0, 0, 0, 0.4) !important;
+        display: none;
+    }
 
-        #counter-badge {
-            font-size: 0.88rem !important;
-            color: #fffd8d !important;
-            font-weight: 700 !important;
-            margin-bottom: 12px !important;
-            min-height: 1.2em !important;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
-        }
+    #counter-badge {
+        font-size: 0.88rem !important;
+        color: #fffd8d !important;
+        font-weight: 700 !important;
+        margin-bottom: 12px !important;
+        min-height: 1.2em !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
+    }
 
-        input[type="file"] {
-            display: none !important;
-        }
+    input[type="file"] {
+        display: none !important;
+    }
 
-        #status-msg {
-            margin-top: 10px !important;
-            font-size: 0.85rem !important;
-            font-weight: 600 !important;
-            min-height: 1.2em !important;
-            width: 100% !important;
-        }
-    </style>
+    #status-msg {
+        margin-top: 10px !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        min-height: 1.2em !important;
+        width: 100% !important;
+    }
+</style>
 </head>
 <body>
 
